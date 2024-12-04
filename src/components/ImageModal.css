@@ -437,7 +437,7 @@ a.edit-more-colors{
 
 
 h3 {
-  font-size: 1rem !important;
+  font-size: 0.8rem !important;
   font-weight: bold !important;
   margin-bottom: 0px !important;
 }
@@ -451,7 +451,7 @@ h3 {
 
 .download-section {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 30px;
   align-items: center;
 }
 

@@ -585,11 +585,17 @@ const handleResolutionChange = (newResolution) => {
   
   return (
     <Modal show={show} onHide={handleClose} size="xl" centered>
-<Modal.Header closeButton>
-  <Modal.Title>
-    {modalTitle && modalTitle.charAt(0).toUpperCase() + modalTitle.slice(1).toLowerCase()}
-  </Modal.Title> {/* Update title display */}
-</Modal.Header>
+
+    <Modal.Header closeButton>
+      <Modal.Title>
+        {modalTitle &&
+          modalTitle
+            .toLowerCase()
+            .split(' ')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')}
+      </Modal.Title>
+    </Modal.Header>
 
       <Modal.Body>
         <div className="image-modal-container">
@@ -826,7 +832,7 @@ const handleResolutionChange = (newResolution) => {
                 </ul>
               </div>
             </div>
-</div>
+          </div>
 
 
           </div>
