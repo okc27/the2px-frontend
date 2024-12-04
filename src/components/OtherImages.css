@@ -1,0 +1,147 @@
+.circle-button {
+  width: 50px;
+  height: 50px;
+  border: 2px solid #c1272d;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background: #c1272d;
+  transition: background 0.3s, opacity 0.3s;
+}
+
+.circle-button img {
+  width: 20px;
+  height: 20px;
+}
+
+.circle-button.right-button img{
+  margin-left: 7px;
+}
+
+.circle-button.left-button img{
+  margin-right: 7px;
+}
+
+/* Hover effect */
+.circle-button:hover img {
+  transform: scale(1.2); /* Enlarge the image by 20% */
+}
+
+.circle-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.other-image-container.clicked {
+  border: 2px solid #c1272d;
+  transform: scale(1.1);
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+
+.slider-container{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Other images container */
+.other-images-container {
+    display: flex;
+    justify-content: space-evenly;
+    overflow: hidden;
+    padding: 10px;
+    padding-left: 0px;
+    padding-right: 0px;
+    width: 60%;
+    flex-grow: 1;
+  }
+  
+  /* Styling for each image container */
+  .other-image-container {
+    margin: 5px;
+    cursor: pointer;
+    width: 125px !important;
+    height: 90px !important;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    border-radius: 12px; /* Rounded corners */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    transition: all 0.3s ease-in-out; /* Smooth transition for hover */
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    margin: 0 5px;
+    cursor: pointer;
+    align-items: center;
+    transition: transform 0.3s, border 0.3s;
+  }
+  
+  /* Hover effect */
+  .other-image-container:hover {
+    transform: scale(1.05); /* Slightly enlarge on hover */
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
+    border-color: #c1272d; /* Highlight border on hover */
+  }
+  
+  /* Styling for images */
+  .other-image-container img {
+    width: 90%;
+    height: 90%;
+    object-fit: cover; /* Ensure images fit well without distortion */
+    border-radius: 8px; /* Match the container's rounded corners */
+  }
+  
+  .other-images-footer{
+    padding: 5px;
+  }
+  
+  .other-images-footer h3{
+    text-align: center;
+    margin-bottom: 10px !important;
+  }
+
+
+  @media (max-width: 1200px) {
+    .other-image-container{
+        width: 125px !important;
+        height: 75px !important;
+    }
+    .other-images-container{
+        width: 70%;
+    }
+  }
+
+
+  @media (max-width: 1000px) {
+    .other-image-container{
+        width: 100px !important;
+        height: 65px !important;
+    }
+  }
+
+  
+  @media (max-width: 786px) {
+    .other-image-container{
+        width: 75px !important;
+        height: 75px !important;
+    }
+  }
+  
+  @media (max-width: 500px) {
+    .other-image-container {
+      width: 60px !important;
+      height: 60px !important;
+    }
+    .other-images-container{
+        width: 60%;
+    }
+
+  }

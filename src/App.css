@@ -1,0 +1,15 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures the page takes up the full viewport height */
+}
+
+.content {
+  flex: 1; /* Makes the content area take up all available space between header and footer */
+  padding: 20px;
+}

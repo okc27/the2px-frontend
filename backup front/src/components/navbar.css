@@ -1,0 +1,176 @@
+/* Navbar Base Styles */
+.navbar {
+  position: sticky !important;
+  top: 0;
+  z-index: 1000;
+  background-color: transparent;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  transform: scale(0.98);
+
+  min-height: 50px;
+}
+
+/* Navbar Branding (Logo and Text) */
+.navbar-logo {
+  width: 120px;
+  height: 30px;
+}
+
+.navbar-brand {
+  margin-right: 21% !important;
+}
+
+/* Navbar Content Layout */
+.navbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Search Bar Styles */
+.search-bar {
+  flex-grow: 1;
+  margin: 0px;
+  position: relative;
+}
+
+.search-bar input {
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  width: 100%;
+  padding-right: 35px;
+  transition: border-color 0.3s;
+}
+input.form-control {
+  padding-left: 5%;
+}
+.search-bar input:focus {
+  border-color: #c1272d;
+  outline: none;
+}
+
+/* Search Icon Inside Input */
+.search-icon {
+  position: absolute;
+  right: 10px;
+  top: 45%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Navbar Background & Effect on Scroll */
+.navbar.scrolled {
+  background-color: rgba(255, 255, 255, 0.97);
+  transform: scale(1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover Effects for Navbar Links */
+.navbar a:hover {
+  color: #c1272d;
+  text-decoration: underline;
+}
+
+/* Focus Effects for Accessibility */
+.navbar a:focus,
+.search-bar input:focus {
+  outline: 2px solid #c1272d;
+}
+.r-div.d-flex.align-items-center{
+  width: 40%;
+}
+
+.search-bar.mx-3{
+  margin-right: 0px !important;
+  margin-left: 0px  !important;
+}
+/* Mobile Menu Toggle Button */
+.navbar-toggler {
+  background-color: #c1272d;
+  border: none;
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,...");
+  width: 30px;
+  height: 30px;
+}
+
+/* Collapsed Navbar Menu for Smaller Screens */
+.navbar-collapse {
+  background-color: rgba(255, 255, 255, 0.97);
+  padding: 10px;
+  border-radius: 10px;
+}
+div#org-nav{
+  justify-content: flex-start;
+}
+
+/* Responsive Styles for Smaller Screens */
+@media (max-width: 875px) {
+  div#org-nav{
+    flex-direction: column;
+  }
+  .navbar-logo {
+    max-height: 50px;
+    width: auto;
+  }
+  .navbar-brand{
+    margin-right: 0px !important;
+    padding-bottom: 1% !important;
+  }
+  .r-div.d-flex.align-items-center{
+    width: 100%;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    width: 100%; /* Ensure full width for search bar */
+  }
+}
+
+/* Adjust font size for smaller screens */
+@media (max-width: 570px) {
+  label.me-2,
+  label.mx-2 {
+    font-size: 0.65rem;
+  }
+
+  .navbar-brand {
+    width: 25%;
+    padding-top: 0px !important;
+  }
+
+  .navbar-logo {
+    height: auto;
+  }
+
+}
+
+/* Further adjustments for very small screens */
+@media (max-width: 420px) {
+  .navbar-brand {
+    margin-bottom: 5px;
+    font-size: 0.8rem; /* Adjust font size for brand */
+  }
+
+  .navbar-logo {
+    width: 70%;
+  }
+
+  .search-bar {
+    width: 100%; /* Ensure the search bar takes full width */
+  }
+}
+
+@media (max-width: 375px) {
+  label.me-2,
+  label.mx-2 {
+    font-size: 0.3rem !important;
+    margin-top: 3px !important;
+  }
+
+}
