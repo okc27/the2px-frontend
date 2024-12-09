@@ -1,3 +1,50 @@
+.modal-nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px; /* Adjust the size of the button */
+  height: 50px; /* Adjust the size of the button */
+  border-radius: 50%; /* Makes the button circular */
+  background-color: #ffffff; /* Button background color */
+  border: none;
+  border: 1px solid #c1272d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.modal-nav-button.left {
+  left: -85px; /* Adjust as needed */
+}
+
+.modal-nav-button.right {
+  right: -100px; /* Adjust as needed */
+}
+
+.arrow-icon {
+  width: 35px; /* Adjust arrow size */
+  height: 35px; /* Adjust arrow size */
+  filter: invert(38%) sepia(82%) saturate(748%) hue-rotate(349deg) brightness(94%) contrast(87%);
+}
+
+
+.arrow-icon.left {
+  transform: rotate(180deg);
+  margin-left: 5px; /* Rotates the arrow to point left */
+}
+
+.arrow-icon.right{
+  margin-left: 7px;
+}
+.modal-nav-button:hover{
+  border: 1px solid #ffffff;
+  background-color: #c1272d;
+}
+.modal-nav-button:hover .arrow-icon {
+  filter: invert(100%); /* Reset the filter when hovering over the button */
+}
+
 .res-change{    
   border-radius: 5px;
   box-sizing: border-box;

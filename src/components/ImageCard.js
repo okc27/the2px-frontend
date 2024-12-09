@@ -9,7 +9,6 @@ const ImageCard = ({ title, svgUrl, tags, backgroundColor, otherImages, ids, cat
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-
     const fetchSvgContent = async () => {
       try {
         const response = await fetch(svgUrl);
@@ -26,9 +25,12 @@ const ImageCard = ({ title, svgUrl, tags, backgroundColor, otherImages, ids, cat
         setIsLoading(false);
       }
     };
-
+  
     fetchSvgContent();
-  }, [svgUrl, otherImages]);
+  }, [svgUrl]); // Only dependent on svgUrl
+
+  
+  
 
   const getFileName = (extension) => {
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -148,7 +150,9 @@ const ImageCard = ({ title, svgUrl, tags, backgroundColor, otherImages, ids, cat
 
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
-
+  const handleModalResult = (result) => {
+    console.log('Result from ImageModal:', result);
+  };
   return (
     <>
       <div className="image-card card p-3 text-center">
@@ -181,7 +185,7 @@ const ImageCard = ({ title, svgUrl, tags, backgroundColor, otherImages, ids, cat
         show={showModal} 
         handleClose={handleCloseModal} 
         title={`${categories && categories.length > 0 ? categories.slice(0, 2).join(' / ') : 'All'} / ${title}`}
-
+        onResult={handleModalResult} // Pass the callback to ImageModal
         image={svgContent}
         downloadSvg={downloadSvg} 
         convertSvgToPng={convertSvgToPng} 

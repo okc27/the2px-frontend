@@ -31,25 +31,103 @@ const ImageModal = ({ show, handleClose, image, title, tags, otherImages, onTagC
   const [colors, setColors] = useState([]);
   const [currentColorIndex, setCurrentColorIndex] = useState(null);
   const [backgroundColor, setBackgroundColor] = useState('transparent');  // Default to transparent
-
+  const [svgimages, setImage] = useState(image); 
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [svgContent, setSvgContent] = useState(image);
-  const [temporarySvgContent, setTemporarySvgContent] = useState(image);
+  const [temporarySvgContent, setTemporarySvgContent] = useState(svgimages);
   const [resolution, setResolution] = useState('original');
-  const [modalTitle, setModalTitle] = useState(title); // State for the modal title
+  const [modalTitle, setModalTitle] = useState(title);
   const [currentTags, setCurrentTags] = useState(tags);
   const [showMoreColors, setShowMoreColors] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState('svg');
   const [isDownloading, setIsDownloading] = useState(false);
   const [rotated, setRotated] = useState(false);
-  const [imageChanged, setImageChanged] = useState(false); // Track image change
-  const [showAllTags, setShowAllTags] = useState(false); // State to track whether to show all tags or not
-  const [visibleCount, setVisibleCount] = useState(7); // Default to 7 colors
-  const [customHeight, setCustomHeight] = useState(''); // Custom height input
-  const [customWidth, setCustomWidth] = useState(''); // Custom width input
-
+  const [imageChanged, setImageChanged] = useState(false);
+  const [showAllTags, setShowAllTags] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(7);
+  const [customHeight, setCustomHeight] = useState('');
+  const [customWidth, setCustomWidth] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(2);
   const [showCustomInputs, setShowCustomInputs] = useState(false);
+  const [svgUrl, setSvgUrl] = useState('');
+  const [imageTitle, setImageTitle] = useState(title); 
+ 
+
+
+  const filteredOtherImages = Array.isArray(otherImages)
+  ? otherImages.filter((img) => img.svg_image_file !== image)
+  : [];
+
+// Function to handle left click
+const handleLeftClick = () => {
+  const nextIndex =
+    currentIndex > 0 ? currentIndex - 1 : filteredOtherImages.length - 1;
+  updateModalContent(nextIndex, image);  
+};
+
+// Function to handle right click
+const handleRightClick = () => {
+  const nextIndex =
+    currentIndex < filteredOtherImages.length - 1 ? currentIndex + 1 : 0;
+  updateModalContent(nextIndex , image);
+};
+
+const updateModalContent = async (index , image) => {
+  
+  const nextImage = filteredOtherImages[index];
+  setCurrentIndex(index);
+
+  // Update modal title and other states
+  setModalTitle(
+    `${nextImage.svg_file_categorie?.slice(0, 2).join(' / ') || 'All'} / ${
+      nextImage.svg_image_name
+    }`
+  );
+  setImageTitle(nextImage.svg_image_name);
+  setCurrentTags(nextImage.tags);
+  setSvgUrl(nextImage.svg_image_file); // Update the SVG URL directly
+
+  // Fetch SVG content when svgUrl changes (directly in the function)
+  if (nextImage.svg_image_file) {
+    try {
+      const response = await fetch(nextImage.svg_image_file);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch SVG: ${response.statusText}`);
+      }
+      const content = await response.text();
+      setTemporarySvgContent(content);
+      setSvgContent(content);
+      setImage(content);
+      const extractedColors = extractColors(content);
+      setColors(extractedColors);
+    } catch (error) {
+      console.error('Error fetching SVG:', error.message);
+    }
+  }
+};
+
+// Initial state setup for modal when component mounts or changes
+useEffect(() => {
+  if (image) {
+    setSvgContent(image);
+    setTemporarySvgContent(image);
+    setImage(image);
+  }
+  if (title) {
+    setModalTitle(title);
+  }
+  if (tags) {
+    setCurrentTags(tags);
+  }
+  if (show) {
+    const extractedColors = extractColors(image);
+    setColors(extractedColors);
+    setSvgContent(image);
+    setTemporarySvgContent(image);
+  }
+}, [show, image, title, tags]);
 
 const handleResolutionChange = (newResolution) => {
   setResolution(newResolution);
@@ -72,20 +150,7 @@ const handleResolutionChange = (newResolution) => {
     preloadImages();
   }, []);
   
-   // Update the state when the image or title changes
-   useEffect(() => {
-    if (image) {
-      setSvgContent(image);
-      setTemporarySvgContent(image);
-    }
-    if (title) {
-      setModalTitle(title);
-    }
-    if (tags) {
-      setCurrentTags(tags);
-    }
-  }, [image, title, tags]);
-
+ 
   
   const extractColors = (svgString) => {
     const colorRegex = /#([0-9A-Fa-f]{3,6})\b/g;
@@ -111,22 +176,6 @@ const handleResolutionChange = (newResolution) => {
     return Array.from(foundColors).sort((a, b) => hexToLuminance(a) - hexToLuminance(b));
   };
   
-
-   useEffect(() => {
-    const preloadImages = () => {
-      const images = [
-        "https://the2px.com/wp-content/uploads/2024/10/download-svgrepo-com.svg",
-        "https://the2px.com/wp-content/uploads/2024/10/save-1.svg",
-      ];
-      images.forEach((src) => {
-        const img = new Image();
-        img.src = src;
-      });
-    };
-
-    preloadImages();
-  }, []);
-
   const updateColor = throttle((index, newColor) => {
     const updatedColors = [...colors];
     updatedColors[index] = newColor;
@@ -154,7 +203,7 @@ const handleResolutionChange = (newResolution) => {
   // Get download file name in the required format
   const getDownloadFileName = (format) => {
     const date = getFormattedDate();
-    return `the2px-${title}-${date}.${format}`;
+    return `the2px-${imageTitle}-${date}.${format}`;
   };
 
   const scaleSvg = (svgContent, resolution, customWidth = null, customHeight = null) => {
@@ -346,16 +395,6 @@ const handleResolutionChange = (newResolution) => {
   
     img.src = `data:image/svg+xml;base64,${btoa(svgContent)}`;
   };
-  
-
-  useEffect(() => {
-    if (show) {
-      const extractedColors = extractColors(image);
-      setColors(extractedColors);
-      setSvgContent(image);
-      setTemporarySvgContent(image);
-    }
-  }, [show, image]);
 
   const handleColorChange = (newColor) => {
     if (currentColorIndex !== null) {
@@ -413,56 +452,63 @@ const handleResolutionChange = (newResolution) => {
     };
   }, []);
 
-  // Render tags dynamically based on currentTags and maxTags
-  const renderTags = () => {
-    if (!currentTags || !Array.isArray(currentTags)) return null;
+// Render tags dynamically based on currentTags and maxTags
+const renderTags = () => {
+  if (!currentTags || !Array.isArray(currentTags)) return null;
 
-    const tagsToDisplay = showAllTags ? currentTags : currentTags.slice(0, maxTags);
+  // Sort tags alphabetically
+  const sortedTags = currentTags.slice().sort((a, b) => a.trim().localeCompare(b.trim()));
 
-    return (
-      <>
-        {tagsToDisplay.map((tag, index) => (
-          <li key={index} className="tag">
-            <a
-              href={`#${tag.trim()}`}
-              onClick={(e) => {
-                e.preventDefault();
-                onTagClick(tag.trim());
-              }}
-              className="tag-link"
-            >
-              {tag.trim()}
-            </a>
-          </li>
-        ))}
-        {currentTags.length > maxTags && !showAllTags && (
-          <li className="see-more">
-            <a 
-              href="#tags-section" 
-              onClick={(e) => {
-                e.preventDefault(); // Prevent the default navigation
-                setShowAllTags(true);
-              }} 
-              className="see-more-btn"
-            >
-              See More
-            </a>
+  const tagsToDisplay = showAllTags ? sortedTags : sortedTags.slice(0, maxTags);
+
+  return (
+    <>
+      {tagsToDisplay.map((tag, index) => (
+        <li key={index} className="tag">
+          <a
+            href={`#${tag.trim()}`}
+            onClick={(e) => {
+              e.preventDefault();
+              onTagClick(tag.trim());
+            }}
+            className="tag-link"
+          >
+            {tag.trim()}
+          </a>
+        </li>
+      ))}
+      {sortedTags.length > maxTags && !showAllTags && (
+        <li className="see-more">
+          <a 
+            href="#tags-section" 
+            onClick={(e) => {
+              e.preventDefault(); // Prevent the default navigation
+              setShowAllTags(true);
+            }} 
+            className="see-more-btn"
+          >
+            See More
+          </a>
         </li>
       )}
-      {showAllTags && currentTags.length > maxTags && (
+      {showAllTags && sortedTags.length > maxTags && (
         <li className="see-more">
-          <a href="#tags-section"       onClick={(e) => {
-        e.preventDefault(); // Prevent the default navigation
-        setShowAllTags(false);
-      }}  className="see-more-btn">
-
+          <a 
+            href="#tags-section" 
+            onClick={(e) => {
+              e.preventDefault(); // Prevent the default navigation
+              setShowAllTags(false);
+            }}  
+            className="see-more-btn"
+          >
             See Less
           </a>
         </li>
-        )}
-      </>
-    );
-  };
+      )}
+    </>
+  );
+};
+
 
   // Update visibleCount based on screen size
   useEffect(() => {
@@ -561,283 +607,316 @@ const handleResolutionChange = (newResolution) => {
   };
   
   const resetChanges = () => { 
-    const initialColors = extractColors(image); // Re-extract original colors from the SVG
-    setColors(initialColors);
-    setTemporarySvgContent(image); // Reset temporary SVG content to the original
-    setSvgContent(image); // Reset actual SVG content to the original
-    setBackgroundColor('transparent'); // Reset background color to transparent
-    setCurrentColorIndex(null); // Reset the selected color index
-  
-    setRotated(true); // Start rotation animation
-  
-    // After rotation ends, show the tick
-    setTimeout(() => {
-        setRotated(false); // Stop the rotation
-        setImageChanged(true); // Change the arrow to a tick
-  
-        // Show the tick for 0.5 seconds
+    try {
+        // Step 1: Extract original colors from the SVG
+        const initialColors = extractColors(svgimages); 
+        setColors(initialColors);
+
+        // Step 2: Reset SVG content to the original image
+        setTemporarySvgContent(svgimages); // Temporary SVG reset
+        setSvgContent(svgimages);          // Main SVG reset
+
+        // Step 3: Reset background color to transparent
+        setBackgroundColor('transparent');
+
+        // Step 4: Clear the selected color index
+        setCurrentColorIndex(null);
+
+        // Step 5: Trigger rotation animation
+        setRotated(true);
+
+        // Animation logic with tick display
         setTimeout(() => {
-            setImageChanged(false); // Hide the tick
-        }, 400); // 0.5 seconds for tick display
-    }, 600); // Matches the rotation animation duration
-  };
+            setRotated(false);        // Stop rotation animation
+            setImageChanged(true);    // Show tick mark
 
-  
+            setTimeout(() => {
+                setImageChanged(false); // Hide tick mark after 0.5s
+            }, 500);
+        }, 600); // Duration for rotation animation
+
+        // Debugging logs
+    } catch (error) {
+        console.error('Error during resetChanges:', error);
+    }
+};
+
   return (
-    <Modal show={show} onHide={handleClose} size="xl" centered>
 
-    <Modal.Header closeButton>
-      <Modal.Title>
-        {modalTitle &&
-          modalTitle
-            .toLowerCase()
-            .split(' ')
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ')}
-      </Modal.Title>
-    </Modal.Header>
+      <Modal show={show} onHide={handleClose} size="xl" centered>
+      <div className="modal-content1">
+{/* Left Button */}
+<button className="modal-nav-button left" onClick={() => { handleLeftClick()}}>
+<img
+  className="arrow-icon left"
+  src="http://localhost/headlesswp/the2px/wp-content/uploads/2024/12/right-arrow-next-svgrepo-com.svg"
+  alt="Left Arrow"
+/>
 
-      <Modal.Body>
-        <div className="image-modal-container">
-          <div className="image-preview-container" style={{ width: '75%', height: '75%', marginRight: '3%' }}>
-            <div
-              className="image-preview"
-              style={{ height: 'auto', overflow: 'hidden', backgroundColor, borderRadius: '15px' }}
-              dangerouslySetInnerHTML={{ __html: temporarySvgContent }}
-            />
-          </div>
-          <div className="or-spacer">
-          </div>
-            <div className="content-section">
-              <h3> Color's </h3>
-              <div className='bg-col'>
-              <div className="color-picker-row">
-              <div className="bg-color-circle" 
-                  style={{ 
-                    backgroundColor: selectedFormat !== 'jpeg' && backgroundColor === 'transparent' ? 'none' : backgroundColor 
-                  }} 
-                  onClick={handleBgColorClick} 
-                >
-                  {/* Render transparent grid only when backgroundColor is 'transparent' */}
-                  {selectedFormat !== 'jpeg' && backgroundColor === 'transparent' && renderTransparentGrid()}
+</button>
+
+{/* Right Button */}
+<button className="modal-nav-button right" onClick={() => { handleRightClick()}}>
+  <img className="arrow-icon right" src="http://localhost/headlesswp/the2px/wp-content/uploads/2024/12/right-arrow-next-svgrepo-com.svg" alt="Right Arrow" />
+</button>
+
+
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {modalTitle &&
+              modalTitle
+                .toLowerCase()
+                .split(' ')
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ')}
+          </Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <div className="image-modal-container">
+            <div className="image-preview-container" style={{ width: '75%', height: '75%', marginRight: '3%' }}>
+              <div
+                className="image-preview"
+                style={{ height: 'auto', overflow: 'hidden', backgroundColor, borderRadius: '15px' }}
+                dangerouslySetInnerHTML={{ __html: temporarySvgContent }}
+              />
+            </div>
+            <div className="or-spacer">
+            </div>
+              <div className="content-section">
+                <h3> Color's </h3>
+                <div className='bg-col'>
+                <div className="color-picker-row">
+                <div className="bg-color-circle" 
+                    style={{ 
+                      backgroundColor: selectedFormat !== 'jpeg' && backgroundColor === 'transparent' ? 'none' : backgroundColor 
+                    }} 
+                    onClick={handleBgColorClick} 
+                  >
+                    {/* Render transparent grid only when backgroundColor is 'transparent' */}
+                    {selectedFormat !== 'jpeg' && backgroundColor === 'transparent' && renderTransparentGrid()}
+                  </div>
+
+                  {/* Background color picker logic */}
+                  <div className="color-picker-wrapper" style={{ position: 'absolute', marginTop: '40px', transform: 'translateX(-50%)', zIndex: 1 }}>
+                    {showBgColorPicker && (
+                      <ColorPickerb
+                        color={backgroundColor === 'transparent' ? '#ffffff' : backgroundColor}
+                        onChange={handleBgColorChange}
+                        onClose={() => setShowBgColorPicker(false)}
+                      />
+                    )}
+                  </div>
+
+                  {/* Separator */}
+                  <div className="separator"></div>
+                  
+                  {/* SVG color picker */}
+                  <div className="colors">
+                  {renderColorPickers()} {/* Render initial color pickers */}
+
                 </div>
+                <div className="reset-div" style={{ display: imageChanged ? 'block' : 'none' }}>
+                <button className="reset-btn" onClick={() => {resetChanges()}}>
+                  
+                      <img 
+                        src="https://the2px.com/wp-content/uploads/2024/11/reset-svgrepo-com.svg" 
+                        alt="Reset Arrow"
+                        style={{ width: '20px', height: '20px' }}
+                        className={rotated ? 'rotate-img' : ''}
+                      />
+                    </button>
+                  </div>
 
-                {/* Background color picker logic */}
-                <div className="color-picker-wrapper" style={{ position: 'absolute', marginTop: '40px', transform: 'translateX(-50%)', zIndex: 1 }}>
-                  {showBgColorPicker && (
-                    <ColorPickerb
-                      color={backgroundColor === 'transparent' ? '#ffffff' : backgroundColor}
-                      onChange={handleBgColorChange}
-                      onClose={() => setShowBgColorPicker(false)}
-                    />
+                </div>        
+                </div>
+              </div>
+    
+              <div className="or-spacer">
+              </div>
+              <div className='main-con'>
+              <div className="selection-container">
+              <div className="res-sec">
+              <h3 style={{ paddingLeft: '5%' }}>
+                  <span>Format</span>
+                  </h3>
+                  <div className="b-35">
+                    <ul className='b-35l'>
+                    <li>
+                      <a 
+                        href="#svg" 
+                        className={`button-35 ${selectedFormat === 'svg' ? 'active' : ''}`} 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedFormat('svg');
+                        }}
+                      >
+                        SVG
+                      </a>
+                    </li>
+                    <li>
+                      <a 
+                        href="#png" 
+                        className={`button-35 ${selectedFormat === 'png' ? 'active' : ''}`} 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedFormat('png');
+                        }}
+                      >
+                        PNG
+                      </a>
+                    </li>
+                    <li>
+                      <a 
+                        href="#jpeg" 
+                        className={`button-35 ${selectedFormat === 'jpeg' ? 'active' : ''}`} 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedFormat('jpeg');
+                        }}
+                      >
+                        JPEG
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div className="format-selection">
+                <h3 style={{ paddingLeft: '5%' }}>
+                  <span>Resolution</span>
+                </h3>
+                <div className="b-35">
+                  <ul className="b-352">
+                    <li>
+                      <a
+                        href="#1000"
+                        className={`button-35 ${resolution === '1000' ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleResolutionChange('1000');
+                        }}
+                      >
+                        1000 x 1000
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="#original"
+                        className={`button-35 ${resolution === 'original' ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleResolutionChange('original');
+                        }}
+                      >
+                        1920 x 1356
+                      </a>
+                    </li>
+                    <li id="lst-r">
+                      <a
+                        href="#2000"
+                        className={`button-35 ${resolution === '2000' ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleResolutionChange('2000');
+                        }}
+                      >
+                        2000 x 2000
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="#custom"
+                        className={`button-35 ${resolution.includes('x') ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCustomWidth(''); // Clear previous inputs
+                          setCustomHeight('');
+                          setResolution('custom');
+                        }}
+                        style={resolution === 'custom' ? { border: '1px solid #c1272d' } : {}}
+                      >
+                        Custom
+                      </a>
+                    </li>
+                  </ul>
+
+                  {resolution === 'custom' && (
+                    <div
+                      className="res-change"
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+                    >
+                      <input
+                        type="number"
+                        placeholder="Width"
+                        value={customWidth}
+                        onChange={(e) => setCustomWidth(e.target.value)}
+                        style={{
+                          padding: '5px',
+                          width: '80px',
+                          border: '1px solid #ccc',
+                          borderRadius: '4px',
+                        }}
+                      />
+                      <span style={{ fontSize: '1rem' }}>x</span>
+                      <input
+                        type="number"
+                        placeholder="Height"
+                        value={customHeight}
+                        onChange={(e) => setCustomHeight(e.target.value)}
+                        style={{
+                          padding: '5px',
+                          width: '80px',
+                          border: '1px solid #ccc',
+                          borderRadius: '4px',
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
-
-                {/* Separator */}
-                <div className="separator"></div>
-                
-                {/* SVG color picker */}
-                <div className="colors">
-                {renderColorPickers()} {/* Render initial color pickers */}
-
-              </div>
-              <div className="reset-div" style={{ display: imageChanged ? 'block' : 'none' }}>
-                  <button className="reset-btn" onClick={resetChanges}>
-                    <img 
-                      src="https://the2px.com/wp-content/uploads/2024/11/reset-svgrepo-com.svg" 
-                      alt="Reset Arrow"
-                      style={{ width: '20px', height: '20px' }}
-                      className={rotated ? 'rotate-img' : ''}
+                <div className="download-section">
+                  <button className="button-29" onClick={handleDownload}>
+                    Download
+                    <img
+                      src={
+                        isDownloading
+                          ? 'https://the2px.com/wp-content/uploads/2024/10/save-1.svg'
+                          : 'https://the2px.com/wp-content/uploads/2024/10/download-svgrepo-com.svg'
+                      }
+                      alt={isDownloading ? 'Save Icon' : 'Download Icon'}
+                      style={{
+                        marginLeft: '10px',
+                        height: '20px',
+                        width: '20px',
+                        filter: 'invert(100%)',
+                      }}
                     />
                   </button>
                 </div>
+              </div>
+              </div>
+              <div className="separator2">
+              </div>
+              <div className="or-spacer" style={{
+                  display:'none',
+                }}>
+              </div>
+              <div className='tag-sec'>
+                <h3>Tags</h3>
+                <div className='tags'>
+                  <ul className="tags-container">
+                    {renderTags()} {/* Render the tags here */}
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-              </div>        
-              </div>
             </div>
-   
-            <div className="or-spacer">
-            </div>
-            <div className='main-con'>
-            <div className="selection-container">
-            <div className="res-sec">
-            <h3 style={{ paddingLeft: '5%' }}>
-                <span>Format</span>
-                </h3>
-                <div className="b-35">
-                  <ul className='b-35l'>
-                  <li>
-                    <a 
-                      href="#svg" 
-                      className={`button-35 ${selectedFormat === 'svg' ? 'active' : ''}`} 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSelectedFormat('svg');
-                      }}
-                    >
-                      SVG
-                    </a>
-                  </li>
-                  <li>
-                    <a 
-                      href="#png" 
-                      className={`button-35 ${selectedFormat === 'png' ? 'active' : ''}`} 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSelectedFormat('png');
-                      }}
-                    >
-                      PNG
-                    </a>
-                  </li>
-                  <li>
-                    <a 
-                      href="#jpeg" 
-                      className={`button-35 ${selectedFormat === 'jpeg' ? 'active' : ''}`} 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSelectedFormat('jpeg');
-                      }}
-                    >
-                      JPEG
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="format-selection">
-              <h3 style={{ paddingLeft: '5%' }}>
-                <span>Resolution</span>
-              </h3>
-              <div className="b-35">
-                <ul className="b-352">
-                  <li>
-                    <a
-                      href="#1000"
-                      className={`button-35 ${resolution === '1000' ? 'active' : ''}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleResolutionChange('1000');
-                      }}
-                    >
-                      1000 x 1000
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#original"
-                      className={`button-35 ${resolution === 'original' ? 'active' : ''}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleResolutionChange('original');
-                      }}
-                    >
-                      1920 x 1356
-                    </a>
-                  </li>
-                  <li id="lst-r">
-                    <a
-                      href="#2000"
-                      className={`button-35 ${resolution === '2000' ? 'active' : ''}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleResolutionChange('2000');
-                      }}
-                    >
-                      2000 x 2000
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#custom"
-                      className={`button-35 ${resolution.includes('x') ? 'active' : ''}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCustomWidth(''); // Clear previous inputs
-                        setCustomHeight('');
-                        setResolution('custom');
-                      }}
-                      style={resolution === 'custom' ? { border: '1px solid #c1272d' } : {}}
-                    >
-                      Custom
-                    </a>
-                  </li>
-                </ul>
-
-                {resolution === 'custom' && (
-                  <div
-                    className="res-change"
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
-                  >
-                    <input
-                      type="number"
-                      placeholder="Width"
-                      value={customWidth}
-                      onChange={(e) => setCustomWidth(e.target.value)}
-                      style={{
-                        padding: '5px',
-                        width: '80px',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                      }}
-                    />
-                    <span style={{ fontSize: '1rem' }}>x</span>
-                    <input
-                      type="number"
-                      placeholder="Height"
-                      value={customHeight}
-                      onChange={(e) => setCustomHeight(e.target.value)}
-                      style={{
-                        padding: '5px',
-                        width: '80px',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="download-section">
-                <button className="button-29" onClick={handleDownload}>
-                  Download
-                  <img
-                    src={
-                      isDownloading
-                        ? 'https://the2px.com/wp-content/uploads/2024/10/save-1.svg'
-                        : 'https://the2px.com/wp-content/uploads/2024/10/download-svgrepo-com.svg'
-                    }
-                    alt={isDownloading ? 'Save Icon' : 'Download Icon'}
-                    style={{
-                      marginLeft: '10px',
-                      height: '20px',
-                      width: '20px',
-                      filter: 'invert(100%)',
-                    }}
-                  />
-                </button>
-              </div>
-            </div>
-            </div>
-            <div className="separator2">
-            </div>
-            <div className="or-spacer" style={{
-                display:'none',
-              }}>
-            </div>
-            <div className='tag-sec'>
-              <h3>Tags</h3>
-              <div className='tags'>
-                <ul className="tags-container">
-                  {renderTags()} {/* Render the tags here */}
-                </ul>
-              </div>
-            </div>
+            
+          </Modal.Body>
           </div>
+        </Modal>
+      
 
-
-          </div>
-      </Modal.Body>
-    </Modal>
   );
 }
 
